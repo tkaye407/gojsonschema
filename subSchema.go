@@ -171,6 +171,68 @@ func NewSubSchema(property string, parentSubSchema *subSchema) *subSchema {
 	return newSchema
 }
 
+type SubSchemaAccessor struct {
+	schema *subSchema
+}
+
+func NewSubSchemaAccessor(SubSchema *subSchema) *SubSchemaAccessor {
+	return &SubSchemaAccessor{schema: SubSchema}
+}
+
+func (s *SubSchemaAccessor) Title() *string {
+	return s.schema.title
+}
+
+func (s *SubSchemaAccessor) Description() *string {
+	return s.schema.description
+}
+
+func (s *SubSchemaAccessor) Name() string {
+	return s.schema.property
+}
+
+func (s *SubSchemaAccessor) Ref() *gojsonreference.JsonReference {
+	return s.schema.ref
+}
+
+func (s *SubSchemaAccessor) RefSchema() *SubSchemaAccessor {
+	return NewSubSchemaAccessor(s.schema.refSchema)
+}
+
+func (s *SubSchemaAccessor) Parent() *SubSchemaAccessor {
+	return NewSubSchemaAccessor(s.schema.parent)
+}
+
+func (s *SubSchemaAccessor) Properties() []*SubSchemaAccessor {
+	children := make([]*SubSchemaAccessor, 0, len(s.schema.propertiesChildren))
+	for _, c := range children {
+		children = append(children, c)
+	}
+	return children
+}
+
+func (s *SubSchemaAccessor) Enum() []string {
+	return s.schema.enum
+}
+
+func (s *SubSchemaAccessor) Required() []string {
+	return s.schema.required
+}
+
+func (s *SubSchemaAccessor) Type() *string {
+	if s.schema.types != nil && s.schema.types.IsTyped() {
+		x := s.schema.types.String()
+		return &x
+	}
+
+	if s.schema.bsonTypes != nil && s.schema.bsonTypes.IsTyped() {
+		x := s.schema.bsonTypes.String()
+		return &x
+	}
+
+	return nil
+}
+
 func (s *subSchema) AddConst(i interface{}) error {
 
 	is, err := marshalWithoutNumber(i)

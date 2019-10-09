@@ -63,7 +63,6 @@ func executeTests(t *testing.T, path string) error {
 	if err != nil {
 		t.Errorf("Error (%s)\n", err.Error())
 	}
-	fmt.Println(file.Name())
 
 	var tests []jsonSchemaTest
 	d := json.NewDecoder(file)

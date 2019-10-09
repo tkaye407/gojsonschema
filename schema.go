@@ -71,6 +71,10 @@ func (d *Schema) SetRootSchemaName(name string) {
 	d.rootSchema.property = name
 }
 
+func (d *Schema) Root() *SubSchemaAccessor {
+	return NewSubSchemaAccessor(d.rootSchema)
+}
+
 // Parses a subSchema
 //
 // Pretty long function ( sorry :) )... but pretty straight forward, repetitive and boring
