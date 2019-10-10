@@ -205,8 +205,8 @@ func (s *SubSchemaAccessor) Parent() *SubSchemaAccessor {
 
 func (s *SubSchemaAccessor) Properties() []*SubSchemaAccessor {
 	children := make([]*SubSchemaAccessor, 0, len(s.schema.propertiesChildren))
-	for _, c := range children {
-		children = append(children, c)
+	for _, c := range s.schema.propertiesChildren {
+		children = append(children, NewSubSchemaAccessor(c))
 	}
 	return children
 }
