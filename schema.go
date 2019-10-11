@@ -1043,6 +1043,10 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 		currentSchema.expression = validate
 	}
 
+	if d, ok := m[KEY_DEFAULT]; ok {
+		currentSchema.defaultValue = d
+	}
+
 	return nil
 }
 

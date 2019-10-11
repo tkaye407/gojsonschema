@@ -27,22 +27,22 @@ package gojsonschema
 
 // Type constants
 const (
-	TYPE_ARRAY   	 = `array`
-	TYPE_BOOLEAN 	 = `boolean`
-	TYPE_INTEGER 	 = `integer`
-	TYPE_NUMBER  	 = `number`
-	TYPE_NULL    	 = `null`
-	TYPE_OBJECT  	 = `object`
-	TYPE_STRING  	 = `string`
-	TYPE_DOUBLE  	 = `double`
-	TYPE_OBJECT_ID 	 = `objectId`
-	TYPE_BOOL		 = `bool`
-	TYPE_DATE 		 = `date`
-	TYPE_REGEX 		 = `regex`
-	TYPE_TIMESTAMP 	 = `timestamp`
-	TYPE_INT32 		 = `int`
-	TYPE_INT64 		 = `long`
-	TYPE_DECIMAL128  = `decimal`
+	TYPE_ARRAY      = `array`
+	TYPE_BOOLEAN    = `boolean`
+	TYPE_INTEGER    = `integer`
+	TYPE_NUMBER     = `number`
+	TYPE_NULL       = `null`
+	TYPE_OBJECT     = `object`
+	TYPE_STRING     = `string`
+	TYPE_DOUBLE     = `double`
+	TYPE_OBJECT_ID  = `objectId`
+	TYPE_BOOL       = `bool`
+	TYPE_DATE       = `date`
+	TYPE_REGEX      = `regex`
+	TYPE_TIMESTAMP  = `timestamp`
+	TYPE_INT32      = `int`
+	TYPE_INT64      = `long`
+	TYPE_DECIMAL128 = `decimal`
 )
 
 // JSON_TYPES hosts the list of type that are supported in JSON

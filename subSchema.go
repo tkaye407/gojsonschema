@@ -78,7 +78,8 @@ const (
 	KEY_IF                    = "if"
 	KEY_THEN                  = "then"
 	KEY_ELSE                  = "else"
-	KEY_VALIDATE 			  = "validate"
+	KEY_VALIDATE              = "validate"
+	KEY_DEFAULT               = "default"
 )
 
 type subSchema struct {
@@ -89,10 +90,11 @@ type subSchema struct {
 	title       *string
 	description *string
 
-	property string
+	property     string
+	defaultValue interface{}
 
 	// Types associated with the subSchema
-	types *jsonSchemaType
+	types     *jsonSchemaType
 	bsonTypes *jsonSchemaType
 
 	// Reference url
@@ -221,16 +223,20 @@ func (s *SubSchemaAccessor) Required() []string {
 
 func (s *SubSchemaAccessor) Type() *string {
 	if s.schema.types != nil && s.schema.types.IsTyped() {
-		x := s.schema.types.String()
-		return &x
+		schemaType := s.schema.types.String()
+		return &schemaType
 	}
 
 	if s.schema.bsonTypes != nil && s.schema.bsonTypes.IsTyped() {
-		x := s.schema.bsonTypes.String()
-		return &x
+		schemaType := s.schema.bsonTypes.String()
+		return &schemaType
 	}
 
 	return nil
+}
+
+func (s *SubSchemaAccessor) Default() interface{} {
+	return s.schema.defaultValue
 }
 
 func (s *subSchema) AddConst(i interface{}) error {

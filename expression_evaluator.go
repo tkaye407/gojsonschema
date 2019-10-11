@@ -4,7 +4,7 @@ type ExpressionEvaluator interface {
 	Evaluate(expression interface{}, fieldPath []string) error
 }
 
-type NoopEvaluator struct {}
+type NoopEvaluator struct{}
 
 func NewNoopEvaluator() *NoopEvaluator {
 	return &NoopEvaluator{}

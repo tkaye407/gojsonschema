@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -234,6 +235,24 @@ func TestBSONTypes(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDefault(t *testing.T) {
+	schemaWithDefault := `{
+		"properties": {
+			"name": {
+				"type": "string",
+				"default": "haley"
+			}
+		}
+	}`
+
+	schema, err := NewSchemaLoader(NewNoopEvaluator()).Compile(NewStringLoader(schemaWithDefault))
+	assert.Nil(t, err)
+	property := schema.rootSchema.propertiesChildren[0]
+	assert.Equal(t, "name", NewSubSchemaAccessor(property).Name())
+	assert.Equal(t, "string", *NewSubSchemaAccessor(property).Type())
+	assert.Equal(t, "haley", NewSubSchemaAccessor(property).Default())
 }
 
 type MockValidateEvaluator struct {
