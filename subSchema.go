@@ -201,8 +201,23 @@ func (s *SubSchemaAccessor) RefSchema() *SubSchemaAccessor {
 	return NewSubSchemaAccessor(s.schema.refSchema)
 }
 
+func (s *SubSchemaAccessor) Schema() *SubSchemaAccessor {
+	if s.schema == nil {
+		return nil
+	}
+	return NewSubSchemaAccessor(s.schema)
+}
+
 func (s *SubSchemaAccessor) Parent() *SubSchemaAccessor {
 	return NewSubSchemaAccessor(s.schema.parent)
+}
+
+func (s *SubSchemaAccessor) Items() []*SubSchemaAccessor{
+	children := make([]*SubSchemaAccessor, 0, len(s.schema.itemsChildren))
+	for _, c := range s.schema.itemsChildren {
+		children = append(children, NewSubSchemaAccessor(c))
+	}
+	return children
 }
 
 func (s *SubSchemaAccessor) Properties() []*SubSchemaAccessor {
