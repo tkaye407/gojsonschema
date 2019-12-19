@@ -157,7 +157,15 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	// definitions
 	if existsMapKey(m, KEY_DEFINITIONS) {
 		if isKind(m[KEY_DEFINITIONS], reflect.Map, reflect.Bool) {
-			for _, dv := range m[KEY_DEFINITIONS].(map[string]interface{}) {
+			definitions, ok := m[KEY_DEFINITIONS].(bson.D)
+			if !ok {
+				return errors.New(formatErrorDescription(
+					Locale.MustBeOfAn(),
+					ErrorDetails{"x": KEY_DEFINITIONS, "y": TYPE_OBJECT},
+				))
+			}
+
+			for _, dv := range definitions.Map() {
 				if isKind(dv, reflect.Map, reflect.Bool) {
 
 					newSchema := NewSubSchema(KEY_DEFINITIONS, currentSchema)
