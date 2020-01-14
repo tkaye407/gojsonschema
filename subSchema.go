@@ -174,11 +174,16 @@ func NewSubSchema(property string, parentSubSchema *subSchema) *subSchema {
 }
 
 type SubSchemaAccessor struct {
+	parent *subSchema
 	schema *subSchema
 }
 
-func NewSubSchemaAccessor(SubSchema *subSchema) *SubSchemaAccessor {
-	return &SubSchemaAccessor{schema: SubSchema}
+func NewSubSchemaAccessor(in *subSchema) *SubSchemaAccessor {
+	if in != nil && in.refSchema != nil {
+		return &SubSchemaAccessor{schema: in.refSchema, parent: in}
+	}
+
+	return &SubSchemaAccessor{schema: in}
 }
 
 func (s *SubSchemaAccessor) Title() *string {
@@ -190,6 +195,10 @@ func (s *SubSchemaAccessor) Description() *string {
 }
 
 func (s *SubSchemaAccessor) Name() string {
+	if s.parent != nil {
+		return s.parent.property
+	}
+
 	return s.schema.property
 }
 
@@ -212,7 +221,7 @@ func (s *SubSchemaAccessor) Parent() *SubSchemaAccessor {
 	return NewSubSchemaAccessor(s.schema.parent)
 }
 
-func (s *SubSchemaAccessor) Items() []*SubSchemaAccessor{
+func (s *SubSchemaAccessor) Items() []*SubSchemaAccessor {
 	children := make([]*SubSchemaAccessor, 0, len(s.schema.itemsChildren))
 	for _, c := range s.schema.itemsChildren {
 		children = append(children, NewSubSchemaAccessor(c))
