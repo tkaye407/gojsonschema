@@ -157,15 +157,20 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 	// definitions
 	if existsMapKey(m, KEY_DEFINITIONS) {
 		if isKind(m[KEY_DEFINITIONS], reflect.Map, reflect.Bool) {
-			definitions, ok := m[KEY_DEFINITIONS].(bson.D)
-			if !ok {
+			var definitions map[string]interface{}
+			switch d := m[KEY_DEFINITIONS].(type) {
+			case bson.D:
+				definitions = d.Map()
+			case map[string]interface{}:
+				definitions = d
+			default:
 				return errors.New(formatErrorDescription(
 					Locale.MustBeOfAn(),
 					ErrorDetails{"x": KEY_DEFINITIONS, "y": TYPE_OBJECT},
 				))
 			}
-
-			for _, dv := range definitions.Map() {
+			
+			for _, dv := range definitions {
 				if isKind(dv, reflect.Map, reflect.Bool) {
 
 					newSchema := NewSubSchema(KEY_DEFINITIONS, currentSchema)
