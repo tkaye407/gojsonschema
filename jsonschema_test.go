@@ -338,6 +338,8 @@ func getTestData(inputType string) interface{} {
 		return decimal
 	case "bson.D":
 		return bson.D{}
+	case TYPE_BINARY:
+		return primitive.Binary{Subtype: 0, Data: []byte{0, 1}}
 	case TYPE_TIMESTAMP:
 		return primitive.Timestamp{123, 0}
 	default:
@@ -371,6 +373,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_REGEX, TYPE_OBJECT_ID, false),
 				bsonTypeTestCase(TYPE_DATE, TYPE_OBJECT_ID, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_OBJECT_ID, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_OBJECT_ID, false),
 			},
 		},
 		{
@@ -388,6 +391,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_REGEX, TYPE_DOUBLE, false),
 				bsonTypeTestCase(TYPE_DATE, TYPE_DOUBLE, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_DOUBLE, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_DOUBLE, false),
 			},
 		},
 		{
@@ -405,6 +409,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_REGEX, TYPE_STRING, false),
 				bsonTypeTestCase(TYPE_DATE, TYPE_STRING, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_STRING, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_STRING, false),
 			},
 		},
 		{
@@ -423,6 +428,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_ARRAY, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_ARRAY, false),
 				bsonTypeTestCase("bson.D", TYPE_ARRAY, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_ARRAY, false),
 			},
 		},
 		{
@@ -441,6 +447,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_OBJECT, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_OBJECT, false),
 				bsonTypeTestCase("bson.D", TYPE_OBJECT, true),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_OBJECT, false),
 			},
 		},
 		{
@@ -460,6 +467,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_BOOL, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_BOOL, false),
 				bsonTypeTestCase("bson.D", TYPE_BOOL, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_BOOL, false),
 			},
 		},
 		{
@@ -478,6 +486,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_DATE, true),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_DATE, false),
 				bsonTypeTestCase("bson.D", TYPE_DATE, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_DATE, false),
 			},
 		},
 		{
@@ -496,6 +505,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_NULL, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_NULL, false),
 				bsonTypeTestCase("bson.D", TYPE_NULL, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_NULL, false),
 			},
 		},
 		{
@@ -514,6 +524,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DATE, TYPE_REGEX, false),
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_REGEX, false),
 				bsonTypeTestCase("bson.D", TYPE_REGEX, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_REGEX, false),
 			},
 		},
 		{
@@ -533,6 +544,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_INT32, false),
 				bsonTypeTestCase("bson.D", TYPE_INT32, false),
 				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_INT32, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_INT32, false),
 			},
 		},
 		{
@@ -552,6 +564,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_TIMESTAMP, false),
 				bsonTypeTestCase("bson.D", TYPE_TIMESTAMP, false),
 				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_TIMESTAMP, true),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_TIMESTAMP, false),
 			},
 		},
 		{
@@ -571,6 +584,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_INT64, false),
 				bsonTypeTestCase("bson.D", TYPE_INT64, false),
 				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_INT64, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_INT64, false),
 			},
 		},
 		{
@@ -590,6 +604,7 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_DECIMAL128, true),
 				bsonTypeTestCase("bson.D", TYPE_DECIMAL128, false),
 				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_DECIMAL128, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_DECIMAL128, false),
 			},
 		},
 		{
@@ -609,6 +624,27 @@ func testCases() []jsonSchemaTest {
 				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_NUMBER, true),
 				bsonTypeTestCase("bson.D", TYPE_NUMBER, false),
 				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_NUMBER, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_NUMBER, false),
+			},
+		},
+		{
+			Description: "binary type matches binData",
+			Schema:      map[string]interface{}{"bsonType": "binData"},
+			Tests: []jsonSchemaTestCase{
+				bsonTypeTestCase(TYPE_OBJECT_ID, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_INT32, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_DOUBLE, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_STRING, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_OBJECT, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_ARRAY, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_BOOL, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_NULL, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_REGEX, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_DATE, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_DECIMAL128, TYPE_BINARY, false),
+				bsonTypeTestCase("bson.D", TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_TIMESTAMP, TYPE_BINARY, false),
+				bsonTypeTestCase(TYPE_BINARY, TYPE_BINARY, true),
 			},
 		},
 		{

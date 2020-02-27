@@ -278,6 +278,11 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 					return
 				}
 				value = cn
+			case primitive.Binary:
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_BINARY) {
+					return
+				}
+				value = cn
 			}
 
 			v.validateSchema(currentSubSchema, value, result, context)

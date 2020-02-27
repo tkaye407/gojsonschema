@@ -43,6 +43,7 @@ const (
 	TYPE_INT32      = `int`
 	TYPE_INT64      = `long`
 	TYPE_DECIMAL128 = `decimal`
+	TYPE_BINARY     = `binData`
 )
 
 // JSON_TYPES hosts the list of type that are supported in JSON
@@ -85,5 +86,6 @@ func init() {
 		TYPE_INT64,
 		TYPE_DECIMAL128,
 		TYPE_DOUBLE,
-		TYPE_NUMBER}
+		TYPE_NUMBER,
+		TYPE_BINARY}
 }
