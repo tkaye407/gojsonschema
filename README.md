@@ -116,6 +116,31 @@ data.Users = append(data.Users, User{"Bill"})
 loader := gojsonschema.NewGoLoader(data)
 ```
 
+#### BSON Types
+
+Realm uses BSON types to map schemas to MongoDB. The following types are supported: 
+- string
+- object
+- array
+- objectId
+- boolean or bool
+- null
+- regex
+- date
+- timestamp
+- int
+- long
+- decimal
+- double
+- number
+- binary
+
+You can load BSON types into the library by doing the following: 
+```go
+m := map[string]interface{}{"bsonType": "objectId"}
+loader := gojsonschema.NewGoLoader(m)
+```
+
 #### Validation
 
 Once the loaders are set, validation is easy :
