@@ -169,7 +169,7 @@ func (d *Schema) parseSchema(documentNode interface{}, currentSchema *subSchema)
 					ErrorDetails{"x": KEY_DEFINITIONS, "y": TYPE_OBJECT},
 				))
 			}
-			
+
 			for _, dv := range definitions {
 				if isKind(dv, reflect.Map, reflect.Bool) {
 

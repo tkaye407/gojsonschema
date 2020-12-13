@@ -190,6 +190,27 @@ func (s *SubSchemaAccessor) Title() *string {
 	return s.schema.title
 }
 
+func (s *SubSchemaAccessor) UniqueItems() bool {
+	return s.schema.uniqueItems
+}
+
+func (s *SubSchemaAccessor) AdditionalProperties() []string {
+	if s.schema.additionalProperties == nil {
+		return []string{}
+	}
+
+	switch typedValue := s.schema.additionalProperties.(type) {
+	case bool:
+		if typedValue {
+			return []string{TYPE_MIXED}
+		}
+	case *subSchema:
+		return append(typedValue.bsonTypes.types, typedValue.types.types...)
+	}
+
+	return []string{}
+}
+
 func (s *SubSchemaAccessor) Description() *string {
 	return s.schema.description
 }

@@ -35,6 +35,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const displayErrorMessages = false
@@ -328,4 +329,106 @@ func TestIncorrectRef(t *testing.T) {
 
 	assert.Nil(t, s)
 	assert.Equal(t, "Object has no key 'fail'", err.Error())
+}
+
+func TestAdditionalProperties(t *testing.T) {
+	getSubSchema := func(sub *SubSchemaAccessor, propertyName string) *SubSchemaAccessor {
+		for _, childSchema := range sub.Properties() {
+			if childSchema.Name() == propertyName {
+				return childSchema
+			}
+		}
+		return nil
+	}
+
+	t.Run("additional properties set to bool should return mixed type", func(t *testing.T) {
+		schemaDoc := bson.D{
+			{"title", "table1"},
+			{"type", "object"},
+			{"properties", bson.D{
+				{"_id", bson.D{{"type", "string"}}},
+				{"dictionary", bson.D{
+					{"type", "object"},
+					{"properties", bson.D{}},
+					{"additionalProperties", true},
+				}},
+			}},
+		}
+
+		schemaLoader := NewGoLoader(schemaDoc)
+		schema, err := NewSchema(schemaLoader, NewNoopEvaluator())
+		if err != nil {
+			t.Errorf("Got error: %s", err.Error())
+		}
+
+		subSchema := getSubSchema(schema.Root(), "dictionary")
+		if subSchema == nil {
+			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
+		}
+
+		if len(subSchema.AdditionalProperties()) != 1 && subSchema.AdditionalProperties()[0] != TYPE_MIXED {
+			t.Errorf("expected AdditionalProperties() to return 'mixed', but found: %v", subSchema.AdditionalProperties())
+		}
+	})
+
+	t.Run("additional properties with listed type should return them", func(t *testing.T) {
+		schemaDoc := bson.D{
+			{"title", "table1"},
+			{"type", "object"},
+			{"properties", bson.D{
+				{"_id", bson.D{{"type", "string"}}},
+				{"dictionary", bson.D{
+					{"type", "object"},
+					{"properties", bson.D{}},
+					{"additionalProperties", bson.D{{"type", "string"}}},
+				}},
+			}},
+		}
+
+		schemaLoader := NewRawLoader(schemaDoc)
+		schema, err := NewSchema(schemaLoader, NewNoopEvaluator())
+		if err != nil {
+			t.Errorf("Got error: %s", err.Error())
+		}
+
+		subSchema := getSubSchema(schema.Root(), "dictionary")
+		if subSchema == nil {
+			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
+		}
+
+		fmt.Println(subSchema.AdditionalProperties())
+		if len(subSchema.AdditionalProperties()) != 1 || subSchema.AdditionalProperties()[0] != TYPE_STRING {
+			t.Errorf("expected AdditionalProperties() to return 'string', but found: %v", subSchema.AdditionalProperties())
+		}
+	})
+
+	t.Run("no additional properties should return empty list", func(t *testing.T) {
+		schemaDoc := bson.D{
+			{"title", "table1"},
+			{"type", "object"},
+			{"properties", bson.D{
+				{"_id", bson.D{{"type", "string"}}},
+				{"dictionary", bson.D{
+					{"type", "object"},
+					{"properties", bson.D{}},
+				}},
+			}},
+		}
+
+		schemaLoader := NewRawLoader(schemaDoc)
+		schema, err := NewSchema(schemaLoader, NewNoopEvaluator())
+		if err != nil {
+			t.Errorf("Got error: %s", err.Error())
+		}
+
+		subSchema := getSubSchema(schema.Root(), "dictionary")
+		if subSchema == nil {
+			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
+		}
+
+		fmt.Println(subSchema.AdditionalProperties())
+		if len(subSchema.AdditionalProperties()) != 0 {
+			t.Errorf("expected AdditionalProperties() to return empty list, but found: %v", subSchema.AdditionalProperties())
+		}
+	})
 }

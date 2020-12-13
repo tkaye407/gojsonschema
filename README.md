@@ -134,6 +134,8 @@ Realm uses BSON types to map schemas to MongoDB. The following types are support
 - double
 - number
 - binary
+- uuid
+- float
 
 You can load BSON types into the library by doing the following: 
 ```go

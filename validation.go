@@ -73,6 +73,41 @@ func (v *subSchema) subValidateWithContext(document interface{}, context *JsonCo
 	return result
 }
 
+func isValidDBRef(doc bson.D) bool {
+	foundRef, foundDB, foundID := false, false, false
+	for _, element := range doc {
+		switch element.Key {
+		case "$ref":
+			if foundRef == true {
+				return false
+			}
+			if _, refIsString := element.Value.(string); !refIsString {
+				return false
+			}
+			foundRef = true
+		case "$id":
+			if foundID == true {
+				return false
+			}
+			foundID = true
+		case "$db":
+			if foundDB == true {
+				return false
+			}
+			if _, dbIsString := element.Value.(string); !dbIsString {
+				return false
+			}
+			foundDB = true
+		default:
+			// If there is any field that is not one of the above 3, then this is not a dbref
+			return false
+		}
+	}
+
+	// DBRef must contain $ref and $id but not necessarily a $db
+	return foundRef && foundID
+}
+
 // Walker function to validate the json recursively against the subSchema
 func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode interface{}, result *Result, context *JsonContext, fieldPath *[]string) {
 	currentSubSchema.fieldPath = v.fieldPath
@@ -90,7 +125,8 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 	// Check for null value
 	if currentNode == nil {
-		validType := currentSubSchema.types.Contains(TYPE_NULL) || currentSubSchema.bsonTypes.Contains(TYPE_NULL)
+		validType := currentSubSchema.types.Contains(TYPE_NULL) || currentSubSchema.bsonTypes.Contains(TYPE_NULL) ||
+			currentSubSchema.types.Contains(TYPE_MIXED) || currentSubSchema.bsonTypes.Contains(TYPE_MIXED)
 		if (currentSubSchema.types.IsTyped() || currentSubSchema.bsonTypes.IsTyped()) && !validType {
 			result.addInternalError(
 				new(InvalidTypeError),
@@ -144,12 +180,12 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 		var value interface{}
 		switch cn := currentNode.(type) {
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_INTEGER, TYPE_INT32, TYPE_INT64, TYPE_NUMBER) {
+			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_INTEGER, TYPE_INT32, TYPE_INT64, TYPE_NUMBER, TYPE_MIXED) {
 				return
 			}
 			value = cn
 		case float32, float64:
-			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DOUBLE, TYPE_NUMBER) {
+			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DOUBLE, TYPE_NUMBER, TYPE_MIXED) {
 				return
 			}
 			value = cn
@@ -172,6 +208,15 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			switch cn := currentNode.(type) {
 
 			case bson.D:
+				// If this is a mixed type, it can be a DBRef { $ref, $db, $id }
+				isObjectType := v.types.Contains(TYPE_OBJECT) || v.bsonTypes.Contains(TYPE_OBJECT)
+				isMixedType := v.types.Contains(TYPE_MIXED) || v.bsonTypes.Contains(TYPE_MIXED)
+				if isMixedType && !isObjectType {
+					if isValidDBRef(cn) {
+						return
+					}
+				}
+
 				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_OBJECT) {
 					return
 				}
@@ -228,7 +273,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 
 		// Simple JSON values : string, number, boolean
 		case reflect.Bool:
-			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_BOOL, TYPE_BOOLEAN) {
+			if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_BOOL, TYPE_BOOLEAN, TYPE_MIXED) {
 				return
 			}
 			value := currentNode.(bool)
@@ -244,7 +289,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			switch cn := currentNode.(type) {
 
 			case string:
-				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_STRING) {
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_STRING, TYPE_MIXED) {
 					return
 				}
 				value = cn
@@ -259,7 +304,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			switch cn := currentNode.(type) {
 
 			case time.Time:
-				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DATE) {
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DATE, TYPE_MIXED) {
 					return
 				}
 				value = cn
@@ -274,13 +319,39 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 				}
 				value = cn
 			case primitive.Decimal128:
-				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DECIMAL128, TYPE_NUMBER) {
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_DECIMAL128, TYPE_NUMBER, TYPE_MIXED) {
 					return
 				}
 				value = cn
 			case primitive.Binary:
-				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_BINARY) {
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_BINARY, TYPE_UUID, TYPE_MIXED) {
 					return
+				}
+
+				if currentSubSchema.types.Contains(TYPE_UUID) || currentSubSchema.bsonTypes.Contains(TYPE_UUID) {
+					if cn.Subtype != 4 {
+						result.addInternalError(
+							new(InvalidTypeError),
+							context,
+							currentNode,
+							ErrorDetails{
+								"expected": "subType: 4",
+								"given":    fmt.Sprintf("subType: %d", cn.Subtype),
+							},
+						)
+						return
+					}
+
+					// Check that the UUID is exactly 16 bytes long
+					if len(cn.Data) != 16 {
+						result.addInternalError(
+							new(DoesNotMatchFormatError),
+							context,
+							value,
+							ErrorDetails{"format": "uuid"},
+						)
+						return
+					}
 				}
 				value = cn
 			}
@@ -294,7 +365,7 @@ func (v *subSchema) validateRecursive(currentSubSchema *subSchema, currentNode i
 			switch cn := currentNode.(type) {
 
 			case primitive.ObjectID:
-				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_OBJECT_ID) {
+				if !currentSubSchema.containsValidType(currentNode, result, context, TYPE_OBJECT_ID, TYPE_MIXED) {
 					return
 				}
 				value = cn
