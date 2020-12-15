@@ -341,7 +341,7 @@ func TestAdditionalProperties(t *testing.T) {
 		return nil
 	}
 
-	t.Run("additional properties set to bool should return mixed type", func(t *testing.T) {
+	t.Run("additional properties set to bool should return true", func(t *testing.T) {
 		schemaDoc := bson.D{
 			{"title", "table1"},
 			{"type", "object"},
@@ -366,8 +366,12 @@ func TestAdditionalProperties(t *testing.T) {
 			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
 		}
 
-		if len(subSchema.AdditionalProperties()) != 1 && subSchema.AdditionalProperties()[0] != TYPE_MIXED {
-			t.Errorf("expected AdditionalProperties() to return 'mixed', but found: %v", subSchema.AdditionalProperties())
+		additionalPropertiesBool, additionalPropertiesSchema := subSchema.AdditionalProperties()
+		if !additionalPropertiesBool {
+			t.Errorf("expected AdditionalProperties() to return true, but found %t", additionalPropertiesBool)
+		}
+		if additionalPropertiesSchema != nil {
+			t.Errorf("expected AdditionalProperties() to return nil SubSchemaAccessor, but found %v", additionalPropertiesSchema)
 		}
 	})
 
@@ -396,13 +400,19 @@ func TestAdditionalProperties(t *testing.T) {
 			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
 		}
 
-		fmt.Println(subSchema.AdditionalProperties())
-		if len(subSchema.AdditionalProperties()) != 1 || subSchema.AdditionalProperties()[0] != TYPE_STRING {
-			t.Errorf("expected AdditionalProperties() to return 'string', but found: %v", subSchema.AdditionalProperties())
+		additionalPropertiesBool, additionalPropertiesSchema := subSchema.AdditionalProperties()
+		if additionalPropertiesBool {
+			t.Errorf("expected AdditionalProperties() to return false, but found %t", additionalPropertiesBool)
+		}
+		if additionalPropertiesSchema == nil {
+			t.Error("expected AdditionalProperties() to return non-nil SubSchemaAccessor, but found nil entry")
+		}
+		if *additionalPropertiesSchema.Type() != TYPE_STRING {
+			t.Errorf("expected AdditionalProperties() to return 'string', but found: %s", *additionalPropertiesSchema.Type())
 		}
 	})
 
-	t.Run("no additional properties should return empty list", func(t *testing.T) {
+	t.Run("no additional properties should return false and nil", func(t *testing.T) {
 		schemaDoc := bson.D{
 			{"title", "table1"},
 			{"type", "object"},
@@ -426,9 +436,12 @@ func TestAdditionalProperties(t *testing.T) {
 			t.Errorf("Found no sub schema for 'dictionary' field: %s", err.Error())
 		}
 
-		fmt.Println(subSchema.AdditionalProperties())
-		if len(subSchema.AdditionalProperties()) != 0 {
-			t.Errorf("expected AdditionalProperties() to return empty list, but found: %v", subSchema.AdditionalProperties())
+		additionalPropertiesBool, additionalPropertiesSchema := subSchema.AdditionalProperties()
+		if additionalPropertiesBool {
+			t.Errorf("expected AdditionalProperties() to return false, but found %t", additionalPropertiesBool)
+		}
+		if additionalPropertiesSchema != nil {
+			t.Errorf("expected AdditionalProperties() to return nil SubSchemaAccessor, but found %v", additionalPropertiesSchema)
 		}
 	})
 }

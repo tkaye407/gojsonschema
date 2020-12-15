@@ -194,7 +194,7 @@ func (p *schemaPool) GetDocument(reference gojsonreference.JsonReference) (*sche
 	refToURL.GetUrl().Fragment = ""
 
 	if cachedSpd, ok := p.schemaPoolDocuments[refToURL.String()]; ok {
-		if bsonD, isBsonD := cachedSpd.Document.(bson.D); isBsonD {
+		if bsonD, ok := cachedSpd.Document.(bson.D); ok {
 			cachedSpd.Document = bsonDToMap(bsonD)
 		}
 		document, _, err := reference.GetPointer().Get(cachedSpd.Document)
