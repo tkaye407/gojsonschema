@@ -142,12 +142,12 @@ func (p *schemaPool) parseReferencesRecursive(document interface{}, ref gojsonre
 func bsonDToMap(doc bson.D) map[string]interface{} {
 	newDoc := map[string]interface{}{}
 	for _, entry := range doc {
-		if subDoc, isSubDoc := entry.Value.(bson.D); isSubDoc {
+		if subDoc, ok := entry.Value.(bson.D); ok {
 			newDoc[entry.Key] = bsonDToMap(subDoc)
-		} else if arr, isArr := entry.Value.([]interface{}); isArr {
+		} else if arr, ok := entry.Value.([]interface{}); ok {
 			newArr := make([]interface{}, len(arr))
 			for idx, elem := range arr {
-				if doc, isDoc := elem.(bson.D); isDoc {
+				if doc, ok := elem.(bson.D); ok {
 					newArr[idx] = bsonDToMap(doc)
 				} else {
 					newArr[idx] = elem
